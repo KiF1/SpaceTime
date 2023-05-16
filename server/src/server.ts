@@ -7,4 +7,4 @@ const prisma = new PrismaClient()
 app.listen({
   host: '0.0.0.0',
   port: 4000,
-}).then(() => console.log('🚀HTTP Running'))
+}).then(() => console.log('🚀Server Running'))
