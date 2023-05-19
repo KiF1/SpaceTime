@@ -20,5 +20,5 @@ app.register(jwt, {
 
 app.listen({
   host: '0.0.0.0',
-  port: 4000,
+  port: 3333,
 }).then(() => console.log('🚀Server Running'))
