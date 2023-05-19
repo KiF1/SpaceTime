@@ -1,26 +1,43 @@
-import { CopyRight } from "@/components/CopyRight";
-import { Hero } from "@/components/Hero";
-import { SignIn } from "@/components/SignIn";
 import { EmptyMemories } from "@/components/EmptyMemories";
-import { cookies } from 'next/headers'
-import { Profile } from "@/components/Profile";
+import { api } from "@/lib/api";
+import { cookies } from "next/headers";
+import dayjs from "dayjs";
+import ptBr from 'dayjs/locale/pt-br'
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
-export default function Home() {
+dayjs.locale(ptBr)
+
+interface Memory {
+  id: string
+  coverUrl: string
+  excerpt: string
+  createdAt: string
+}
+
+export default async function Home() {
   const isAuthenticated = cookies().has('token');
+  const token = cookies().get('token')?.value;
+  const response = await api.get('/memories', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  const memories = response.data;
 
-  return (
-    <main className="grid grid-cols-2 min-h-screen">
-      <div className="flex bg-[url(../assets/bg-stars.svg)] bg-cover flex-col items-start justify-between px-28 py-16 relative overflow-hidden border-r border-white/10">
-        <div className="absolute right-0 top-1/2 h-[288px] w-[526px] -translate-y-1/2 -translate-x-1/2 rounded-full blur-full bg-purple-700 opacity-40" />
-        <div className="absolute right-2 top-0 bottom-0 w-2 bg-stripes" />
-        {isAuthenticated ? <Profile />  : <SignIn />}
-        <Hero />
-        <CopyRight />
-      </div>
-      
-      <div className="flex flex-col p-16 bg-[url(../assets/bg-stars.svg)] bg-cover">
-        <EmptyMemories />
-      </div>
-    </main>
-  )
+  if(!isAuthenticated || memories.lenght === 0){
+    return  <EmptyMemories />
+  }
+
+  return <div className="flex flex-col gap-10 p-8">
+    {memories.map((memory: Memory) => (
+        <div key={memory.id} className="space-y-4">
+          <time className="flex items-center gap-2 text-sm text-gray-100 before:h-px before:w-5 before:bg-gray-50">{dayjs(memory.createdAt).format('D[ de ]MMMM[, ]YYYY')}</time>
+          <Image src={memory.coverUrl} width={592} height={280} className="w-full aspect-video object-cover rounded-lg" alt="" />
+          <p className="text-lg leading-relaxed text-gray-100">{memory.excerpt}</p>
+          <Link href={`/memories/${memory.id}`} className="flex items-center gap-2 text-sm text-gray-200 hover:text-gray-100">Ler mais <ArrowRight className="w-4 h-4" /></Link>
+        </div>
+      ))}
+  </div>
 }
